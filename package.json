@@ -1,22 +1,33 @@
 {
-  "name": "comlink2-uart",
-  "version": "0.0.0",
-  "description": "Exchange messages with Paradigm series pumps over Carelink USB stick.",
-  "main": "index.js",
-  "scripts": {
-    "test": "make test"
+  "name": "cylon-carelink",
+  "version": "0.1.0",
+  "main": "lib/cylon-carelink.js",
+  "description": "Cylon module for Carelink",
+  "homepage": "http://cylonjs.com",
+  "bugs": "Your bug report URL here",
+  "author": {
+    "name": "Your Name Here",
+    "email": "Your Email Here",
+    "url": "Your URL here"
   },
-  "keywords": [
-    "serial",
-    "stream",
-    "protocol",
-    "carelink"
+  "repository": {
+    "type": "git",
+    "url": "your git URL here"
+  },
+  "licenses": [
+    {
+      "type": "your license type here"
+    }
   ],
-  "author": "Ben West",
-  "license": "GPLv3",
+  "devDependencies": {
+    "sinon-chai": "~2.5.0",
+    "chai": "~1.9.0",
+    "mocha": "~1.17.1",
+    "sinon": "~1.8.2",
+    "jshint": "~2.4.4"
+  },
   "dependencies": {
-    "put": "0.0.6",
-    "event-stream": "~3.1.5",
-    "binary": "~0.3.0"
+    "node-namespace": "~1.0.0",
+    "cylon": "~0.11.2"
   }
 }
