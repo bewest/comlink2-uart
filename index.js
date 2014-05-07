@@ -17,6 +17,17 @@ function Command (cb) {
 }
 util.inherits(Command, EventEmitter);
 
+function registry (Base) {
+  Base.commands = { };
+  Base.create = function create (name, opts, alt_subclass) {
+    var Subclass = alt_subclass ? alt_subclass : Base;
+    Base.commands[name] = function (fn) {
+      Subclass.call(this);
+    }
+  }
+}
+registry(Command);
+
 function assign_opcodes (command, opcodes) {
   command.prototype.opcodes = function list_opcodes ( ) {
     return opcodes;
@@ -224,19 +235,16 @@ function uart (transport) {
     var primer = es.readArray([
         new ProductInfo(console.log.bind(console, 'ProductInfo'))
       , new SignalStrength(console.log.bind(console, 'signal strength'))
-      // , new RadioStats(console.log.bind(console, 'RadioStats'))
-      // , new UsbStats(console.log.bind(console, 'UsbStats'))
     ]);
-    // .pipe(stream, {end: false});
     es.pipeline(primer, flows( ), es.writeArray(cb));
   
   }
 
   function exec (item, next) {
     console.log('sending');
-    // put( ).put()
+
     if (item.close) {
-      // master.end( );
+
       console.log(transport);
       transport
         .on('error', console.log.bind(console, 'OOPS'));
@@ -247,7 +255,7 @@ function uart (transport) {
       return;
     }
     item.emit('sending', transport);
-    transport.write(item.format( ), function reading ( ) {
+    transport.write(item.format( ), function written ( ) {
       console.log('reading, (wrote)', item.format( ).toString('hex'), arguments);
       var input = item.response(binary( ), function read (err, data) {
         console.log('read', arguments);
@@ -255,7 +263,7 @@ function uart (transport) {
       }).tap(function (vars) {
         item.emit('response', item, vars);
       });
-      // transport.pipe(input, {end: false});
+
       transport.pipe(input);
     });
   }
@@ -324,8 +332,7 @@ function uart (transport) {
     es.pipeline(es.readArray([{close:true}]), flows( ), es.writeArray(function (err, results) {
       console.log('FINISHED', arguments);
     }));
-    // .pipe(flows( ));
-    // transport.close( );
+
   }
 
   master.open = open;
