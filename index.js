@@ -242,7 +242,7 @@ function uart (transport) {
       stream.on('error', console.log.bind(console, 'OOPS'));
       // transport.pipe(binary( )).end( );
       stream.end( );
-      next(null);
+      next( );
       return;
     }
     transport.write(item.format( ).toString( ), function reading ( ) {
@@ -288,13 +288,16 @@ function uart (transport) {
   }
 
   var master = es.pipeline(stream, es.map(pause), es.map(exec), es.map(resume));
+  master.on('end', function (err) {
+    console.log('MASTER ENDED', arguments);
+  });
   master.on('close', function (err) {
     console.log('CLOSED MASTER');
     transport.close(function (err) {
       console.log('CLOSED transport', arguments);
     });
   })
-  master.on('end', console.log.bind(console, 'ERROR on MASTER'));
+  master.on('end', console.log.bind(console, 'END on MASTER'));
   master.on('error', console.log.bind(console, 'ERROR on MASTER'));
 
   function flows ( ) {
@@ -307,7 +310,7 @@ function uart (transport) {
         this.emit('end');
         if (data && data.close) {
           console.log('killing a flow');
-          master.end( );
+          // stream.end( );
         }
       }
     );
