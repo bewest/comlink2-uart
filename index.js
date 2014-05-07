@@ -12,8 +12,10 @@ var lib = require('./lib');
 
 function Command (cb) {
   this.cb = cb;
+  EventEmitter.call(this);
   return this;
 }
+util.inherits(Command, EventEmitter);
 
 function assign_opcodes (command, opcodes) {
   command.prototype.opcodes = function list_opcodes ( ) {
@@ -25,15 +27,16 @@ function assign_opcodes (command, opcodes) {
 Command.prototype.format = function format ( ) {
   return new Buffer(this.opcodes( ));
 }
+Command.prototype.send = function send (transport) {
+  transport.write(this.format( ));
+  return this;
+}
 
 Command.prototype.decode = function (data) {
   console.log(this, 'decoding', data);
   return data;
 }
 
-Command.prototype.read = function ( ) {
-  var parser = new packet.Parser( );
-}
 Command.prototype.response = function (input, next) {
   // var input = binary(transport);
   console.log('finding');
@@ -230,7 +233,6 @@ function uart (transport) {
   }
 
   function exec (item, next) {
-    // transport.write(item.format( ));
     console.log('sending');
     // put( ).put()
     if (item.close) {
@@ -240,16 +242,18 @@ function uart (transport) {
         .on('error', console.log.bind(console, 'OOPS'));
       master.on('error', console.log.bind(console, 'OOPS'));
       stream.on('error', console.log.bind(console, 'OOPS'));
-      // transport.pipe(binary( )).end( );
       stream.end( );
       next( );
       return;
     }
-    transport.write(item.format( ).toString( ), function reading ( ) {
+    item.emit('sending', transport);
+    transport.write(item.format( ), function reading ( ) {
       console.log('reading, (wrote)', item.format( ).toString('hex'), arguments);
       var input = item.response(binary( ), function read (err, data) {
         console.log('read', arguments);
         next(null, data);
+      }).tap(function (vars) {
+        item.emit('response', item, vars);
       });
       // transport.pipe(input, {end: false});
       transport.pipe(input);
@@ -301,8 +305,25 @@ function uart (transport) {
   master.on('error', console.log.bind(console, 'ERROR on MASTER'));
 
   function flows ( ) {
+    function iter (item, next) {
+      if (item && item.on) {
+        item.on('response', function respond (elem, vars) {
+          console.log('response', elem, vars, elem.decode(vars.raw));
+          next(null, elem.decode(vars.raw));
+        });
+        master.write(item);
+        return;
+      }
+      master.write(item);
+      next( );
+    }
+    return es.map(iter);
     var requests = es.through(
       function (item) {
+        item.on('response', function respond (elem, vars) {
+          console.log('response', elem, vars, elem.decode(vars.raw));
+          requests.emit('data', elem.decode(vars.raw));
+        });
         master.write(item);
       }, function end (data) {
         // this.end( );
