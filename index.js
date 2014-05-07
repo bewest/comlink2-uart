@@ -318,24 +318,6 @@ function uart (transport) {
       next( );
     }
     return es.map(iter);
-    var requests = es.through(
-      function (item) {
-        item.on('response', function respond (elem, vars) {
-          console.log('response', elem, vars, elem.decode(vars.raw));
-          requests.emit('data', elem.decode(vars.raw));
-        });
-        master.write(item);
-      }, function end (data) {
-        // this.end( );
-        console.log('ending a flow', arguments);
-        this.emit('end');
-        if (data && data.close) {
-          console.log('killing a flow');
-          // stream.end( );
-        }
-      }
-    );
-    return requests;
   }
 
   function finish ( ) {
