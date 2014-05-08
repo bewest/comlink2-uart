@@ -1,168 +1,18 @@
 
 var es = require('event-stream')
   , util = require('util')
-  , put = require('put')
+  // , put = require('put')
   , binary = require('binary')
-  , buffers = require('buffers')
-  , packet = require('packet')
+  , chainsaw = require('chainsaw')
   , EventEmitter = require('events').EventEmitter
   ;
 
 var lib = require('./lib');
+var Command = require('./lib/stick/commands');
 
-function Command (cb) {
-  this.cb = cb;
-  EventEmitter.call(this);
-  return this;
-}
-util.inherits(Command, EventEmitter);
 
-function registry (Base) {
-  Base.commands = { };
-  Base.create = function create (name, opts, alt_subclass) {
-    var Subclass = alt_subclass ? alt_subclass : Base;
-    Base.commands[name] = function (fn) {
-      Subclass.call(this);
-    }
-  }
-}
-registry(Command);
-
-function assign_opcodes (command, opcodes) {
-  command.prototype.opcodes = function list_opcodes ( ) {
-    return opcodes;
-  }
-  return command;
-}
-
-Command.prototype.format = function format ( ) {
-  return new Buffer(this.opcodes( ));
-}
-Command.prototype.send = function send (transport) {
-  transport.write(this.format( ));
-  return this;
-}
-
-Command.prototype.decode = function (data) {
-  console.log(this, 'decoding', data);
-  return data;
-}
-
-Command.prototype.response = function (input, next) {
-  // var input = binary(transport);
-  console.log('finding');
-  var self = this;
-  return input.buffer('raw', 64)
-       .tap(function respond (vars) {
-         console.log('TAPPED', vars);
-         self.raw = vars
-         self.parser = this;
-         if (self.cb && self.cb.call) {
-          self.cb(null, self.decode(vars.raw));
-         }
-         next(null, self.decode(vars.raw));
-         // this.end( );
-       }); // .flush( );
-}
-
-function SignalStrength ( ) {
-  Command.apply(this, arguments);
-  return this;
-}
-util.inherits(SignalStrength, Command);
-SignalStrength.prototype.opcodes = function ( ) {
-  return [ 0x06, 0x00 ];
-};
-SignalStrength.prototype.decode = function (data) {
-  return data[0];
-};
-function Stats ( ) {
-  Command.apply(this, arguments);
-  return this;
-}
-util.inherits(Stats, Command);
-Stats.prototype.decode = function (data) {
-  var b = data.slice(0);
-  data = new Buffer(data.slice(3));
-  return {
-    errors : {
-      crc       : data[0],
-      sequence  : data[1],
-      naks      : data[2],
-      timeouts  : data[3]
-    },
-    packets : {
-      received  : lib.BangLong.apply(null, data.slice(4,8)),
-      transmit  : lib.BangLong.apply(null, data.slice(8,12))
-    }
-  };
-}
-
-function UsbStats ( ) {
-  Stats.apply(this, arguments);
-}
-util.inherits(UsbStats, Stats);
-UsbStats.prototype.opcodes = function ( ) {
-  return [ 0x05, 0x01 ];
-};
-
-function RadioStats ( ) {
-  Stats.apply(this, arguments);
-}
-util.inherits(RadioStats, Stats);
-RadioStats.prototype.opcodes = function ( ) {
-  return [ 0x05, 0x00 ];
-};
-
-function ProductInfo( ) {
-  Command.apply(this, arguments);
-}
-util.inherits(ProductInfo, Command);
-ProductInfo.iface = function (i) {
-  var keys = { 3: "USB", 1: "Paradigm RF" };
-  if (keys[i]) {
-    return keys[i];
-  }
-  return "UNKNOWN";
-}
-ProductInfo.rf_lookup = function (i) {
-  var keys = { 255: "916.5Mhz", 1: "868.35Mhz", 0: "916.5Mhz" };
-  if (keys[i]) {
-    return keys[i];
-  }
-  return i.toString( ) + " UNKNOWN";
-}
-ProductInfo.decodeInterfaces = function (L) {
-  // console.log('dc interfaces', L);
-  var n = L[0], tail = L.slice(1);
-  var i, k, v;
-  var interfaces = [ ];
-  for (var x = 0; x < n ; x++) {
-    i = x*2;
-    k = tail[i], v = tail[i+1];
-    interfaces.push( [ k, ProductInfo.iface(v) ] );
-  }
-  return interfaces;
-}
-ProductInfo.prototype.opcodes = function ( ) {
-  return [ 0x04, 0x00 ];
-};
-ProductInfo.prototype.decode = function (data) {
-  var b = data.slice(0);
-  data = new Buffer(data.slice(3));
-  console.log('product info custom decoder');
-  return {
-    serial      : data.slice(0,3).toString('hex')
-  , product     : [ data[3].toString( ), data[4].toString( ) ].join('.')
-  // , product     : data.slice(3,5).toString( ).split('').join('.')
-  , rf          : ProductInfo.rf_lookup(data[5])
-  , description : data.slice(6, 16).toString( )
-  , firmware    : [ data[16].toString( ), data[17].toString( ) ].join('.')
-  , interfaces  : ProductInfo.decodeInterfaces(data.slice(18))
-  };
-};
-RESPONSES = { default: 64 };
 /*
+RESPONSES = { default: 64 };
 function Stick (transport) {
   if (this === (typeof window === 'undefined' ? global : window)) {
     return new Stick(transport);
@@ -221,24 +71,21 @@ function uart (transport) {
   }, function ender ( ) {
     console.log("ENDING");
     this.emit('end');
-    /*
-    transport.close(function ( ) {
-      console.log('CLOSED');
-    });
-    */
-    /*
-    */
   });
   var input = binary( );
 
   function open (cb) {
     var primer = es.readArray([
-        new ProductInfo(console.log.bind(console, 'ProductInfo'))
-      , new SignalStrength(console.log.bind(console, 'signal strength'))
+        new Command.commands.ProductInfo(console.log.bind(console, 'ProductInfo'))
+      , new Command.commands.SignalStrength(console.log.bind(console, 'signal strength'))
     ]);
     es.pipeline(primer, flows( ), es.writeArray(cb));
   
   }
+  
+  var from_device = es.through(function (chunk) {this.emit('data', chunk);}
+                      , function ( ) { });
+  transport.pipe(from_device);
 
   function exec (item, next) {
     console.log('sending');
@@ -254,7 +101,7 @@ function uart (transport) {
       next( );
       return;
     }
-    item.emit('sending', transport);
+    // item.emit('sending', transport);
     transport.write(item.format( ), function written ( ) {
       console.log('reading, (wrote)', item.format( ).toString('hex'), arguments);
       var input = item.response(binary( ), function read (err, data) {
@@ -262,9 +109,18 @@ function uart (transport) {
         next(null, data);
       }).tap(function (vars) {
         item.emit('response', item, vars);
+        input.end( );
+        console.log('LISTENERS', from_device.listeners('end'));
+        var last = {
+            data:from_device.listeners('data').pop( )
+          , end: from_device.listeners('end').pop( )
+        };
+
+        from_device.removeListener('data', last.data);
+        from_device.removeListener('end', last.end);
       });
 
-      transport.pipe(input);
+      from_device.pipe(input, {end: false});
     });
   }
   function pause (item, next) {
@@ -281,15 +137,15 @@ function uart (transport) {
 
 
   function rf_stats (fn) {
-    master.write(new RadioStats(fn));
+    master.write(new Command.commands.RadioStats(fn));
   }
 
   function usb_stats (fn) {
-    master.write(new UsbStats(fn));
+    master.write(new Command.commands.UsbStats(fn));
   }
 
   function interface_stats (fn) {
-    var list = [ new RadioStats( ), new UsbStats( ) ];
+    var list = [ new Command.commands.RadioStats( ), new Command.commands.UsbStats( ) ];
     function done (err, results) {
       console.log('XXX DONE results', arguments);
       fn(err, results);
@@ -334,6 +190,94 @@ function uart (transport) {
     }));
 
   }
+  
+  function chain (saw) {
+    var flow = flows( );
+    this.open = function open_chain (cb) {
+      cb = (cb && cb.call) ? cb : empty;
+      var self = this;
+      open(function (err, results) {
+          cb.apply(self, arguments);
+          saw.next( );
+        /*
+        self.poll_signal(function (err, signal) {
+          console.log('haha');
+        });
+        */
+      });
+    }
+
+    this.tap = function tap (cb) {
+      saw.nest(cb);
+    }
+
+    this.stats = function stats (cb) {
+      cb = (cb && cb.call) ? cb : empty;
+      var self = this;
+      interface_stats(function (err, results) {
+        cb.apply(self, arguments);
+        saw.next( );
+      });
+    }
+
+    this.signal_status = function signal_status (cb) {
+      cb = (cb && cb.call) ? cb : empty;
+      // var query = es.readArray([ ]);
+      var self = this;
+      function done (err, results) {
+        cb.apply(self, arguments);
+        saw.next( );
+      }
+      var query = new Command.commands.SignalStrength(done);
+      // master.write(query);
+      es.pipeline(es.readArray([query]), flow, es.writeArray(done));
+    }
+
+    this.poll_signal = function poll_signal (cb) {
+      cb = (cb && cb.call) ? cb : empty;
+      var last = 0;
+      var count = 0;
+      var self = this;
+      var _next = saw.next;
+      function handle_signal (err, signal) {
+        count++;
+        console.log('signal attempt', count, signal);
+        if (signal > 80) {
+          cb.apply(self, arguments);
+          saw.next( );
+          _next( );
+          return;
+        }
+        if (count < 10) self.signal_status(handle_signal);
+        if (count > 10) saw.next( );
+      }
+      saw.nest(false, function ( ) {
+        self.signal_status(handle_signal);
+      });
+    }
+
+    this.send_packet = function send_packet (cb) {
+    }
+
+    this.status = function status (cb) {
+      cb = (cb && cb.call) ? cb : empty;
+      var query = es.readArray([new Command.commands.Status( )]);
+      var self = this;
+      function done (err, results) {
+        cb.apply(self, arguments);
+        saw.next( );
+      }
+      es.pipeline(query, flow, es.writeArray(done));
+
+    }
+
+    this.close = function close (cb) {
+      finish( );
+      saw.next( );
+    }
+  }
+
+  return chainsaw(chain);
 
   master.open = open;
   master.interface_stats = interface_stats;
@@ -342,6 +286,9 @@ function uart (transport) {
   master.finish = finish;
   return master;
 }
+function empty ( ) { }
+
+module.exports = uart;
 
 
 if (!module.parent) {
@@ -352,9 +299,17 @@ if (!module.parent) {
     var driver = uart(serial);
     driver.open(function (ctx) {
       // driver.usb_stats(console.log.bind(console, 'USB STATS'));
-      driver.interface_stats(console.log.bind(console, 'INTERFACE STATS'));
-      driver.finish( );
-    });
+      console.log('opened', 'args', arguments, 'this', this);
+      // driver.interface_stats(console.log.bind(console, 'INTERFACE STATS'));
+      // driver.finish( );
+    })
+    .stats(console.log.bind(console, 'INTERFACE STATS'))
+    .signal_status(console.log.bind(console, 'signal stength'))
+    .poll_signal(console.log.bind(console, 'SIGNAL'))
+    .status(console.log.bind(console, 'STATUS'))
+    .stats(console.log.bind(console, 'INTERFACE STATS'))
+    .close( )
+    ;
   });
 }
 
