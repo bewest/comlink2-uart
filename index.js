@@ -53,16 +53,18 @@ function session (stick) {
           console.log("REMOTE", command);
           saw.next( );
         })
-      ;
+        ;
+      // saw.nest(function ( ) { });
     }
     this.exec = execute;
 
     function model (cb) {
-      this.exec(ReadPumpModel(my.serial), function (err, response) {
-        console.log("FETCHED PUMP MODEL", arguments);
-        cb.apply(this, arguments);
-        saw.next( );
-      })
+      var self = this;
+        this.exec(ReadPumpModel(my.serial), function (err, response) {
+          console.log("FETCHED PUMP MODEL", arguments);
+          cb.apply(this, arguments);
+          // saw.next( );
+        })
     }
     this.model = model;
 
@@ -162,10 +164,10 @@ if (!module.parent) {
     pump.open( )
         .serial('208850')
         .status(console.log.bind(console, "STATUS"))
-        .model(console.log.bind("MODEL NUMBER"))
-        .model(console.log.bind("MODEL NUMBER"))
-        .model(console.log.bind("MODEL NUMBER"))
-        .status(console.log.bind(console, "STATUS"))
+        .model(console.log.bind("MODEL NUMBER 1"))
+        .model(console.log.bind("MODEL NUMBER 2"))
+        // .model(console.log.bind("MODEL NUMBER"))
+        // .status(console.log.bind(console, "STATUS"))
         .end( )
     ;
   });
