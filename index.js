@@ -45,15 +45,16 @@ function session (stick) {
 
     function execute (command, cb) {
       console.log("BEGIN", "EXECUTE", command);
-      stick
-        .transmit(command)
-        .download(command)
-        .tap(function ( ) {
-          cb.call(this, command);
-          console.log("REMOTE", command);
-          saw.next( );
-        })
-        ;
+      var next = saw.next;
+        stick
+          .transmit(command)
+          .download(command)
+          .tap(function ( ) {
+            cb.call(this, command);
+            console.log("REMOTE", command);
+            next( );
+          })
+          ;
       // saw.nest(function ( ) { });
     }
     this.exec = execute;
@@ -63,7 +64,7 @@ function session (stick) {
         this.exec(ReadPumpModel(my.serial), function (err, response) {
           console.log("FETCHED PUMP MODEL", arguments);
           cb.apply(this, arguments);
-          // saw.next( );
+          saw.next( );
         })
     }
     this.model = model;
