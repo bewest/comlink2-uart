@@ -1,34 +1,33 @@
 {
-  "name": "cylon-carelink",
-  "version": "0.1.0",
-  "main": "lib/cylon-carelink.js",
-  "description": "Cylon module for Carelink",
-  "homepage": "http://cylonjs.com",
-  "bugs": "Your bug report URL here",
-  "author": {
-    "name": "Your Name Here",
-    "email": "Your Email Here",
-    "url": "Your URL here"
+  "name": "comlink2-uart",
+  "version": "0.0.0",
+  "description": "comlink2 driver",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "binary": "~0.3.0",
+    "buffers": "~0.1.1",
+    "chainsaw": "~0.1.0",
+    "cylon": "~0.13.3",
+    "cylon-cli": "~0.4.3",
+    "event-stream": "~3.1.5",
+    "packet": "~0.0.6",
+    "put": "~0.0.6",
+    "serialport": "~1.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "your git URL here"
+    "url": "git://github.com/bewest/comlink2-uart.git"
   },
-  "licenses": [
-    {
-      "type": "your license type here"
-    }
-  ],
-  "devDependencies": {
-    "sinon-chai": "~2.5.0",
-    "chai": "~1.9.0",
-    "mocha": "~1.17.1",
-    "sinon": "~1.8.2",
-    "jshint": "~2.4.4"
-  },
-  "dependencies": {
-    "node-namespace": "~1.0.0",
-    "cylon": "~0.11.2",
-    "chainsaw": "~0.1.0"
+  "author": "Ben West <bewest+insulaudit@gmail.com>",
+  "license": "GPL2",
+  "bugs": {
+    "url": "https://github.com/bewest/comlink2-uart/issues"
   }
 }
