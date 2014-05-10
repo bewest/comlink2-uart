@@ -126,7 +126,7 @@ function readable (radio) {
     if (this.frames < 1) {
       return true;
     }
-    if (this.frames >= 1 && stats.size > 64) {
+    if (this.frames >= 1 && radio.size > 64) {
       return true;
     }
   }
@@ -141,7 +141,7 @@ function done ( ) {
 }
 
 function append (data) {
-  console.log('XXYYXX', 'DATA', data.toString('hex'));
+  // console.log('XXYYXX', 'DATA', data.toString('hex'));
   this.data.push(data);
 }
 
@@ -162,6 +162,8 @@ if (!module.parent) {
     pump.open( )
         .serial('208850')
         .status(console.log.bind(console, "STATUS"))
+        .model(console.log.bind("MODEL NUMBER"))
+        .model(console.log.bind("MODEL NUMBER"))
         .model(console.log.bind("MODEL NUMBER"))
         .status(console.log.bind(console, "STATUS"))
         .end( )
