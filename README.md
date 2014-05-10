@@ -7,7 +7,7 @@ pure js implementation of comlink2 serial protocol
 
 Buggy code, WIP.
 
-See [decoding-carelink](/bewest/decoding-carelink) for more information.
+See [decoding-carelink](http://github.com/bewest/decoding-carelink) for more information.
 This is a javascript port.
 
 Should work with `net` and `serialport` transports.
