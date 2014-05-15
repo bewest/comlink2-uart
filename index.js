@@ -112,12 +112,12 @@ function session (stick) {
 
     function model (cb) {
       var self = this;
-      saw.nest(false, function ( ) {
+      saw.nest(function ( ) {
         var next = saw.next;
         this.exec(ReadPumpModel(my.serial), function (err, response) {
           console.log("FETCHED PUMP MODEL", arguments);
           if (cb && cb.call) cb.apply(this, arguments);
-          next( );
+          // next( );
         });
       });
     }
@@ -211,8 +211,19 @@ function ReadPumpModel (address) {
 
 if (!module.parent) {
   var Serial = require('serialport');
-  var serial = new Serial.SerialPort('/dev/ttyUSB0', {bufferSize: 64});
-  serial.open(function ( ) {
+  function scan (open) {
+    Serial.list(function (err, list) {
+      var spec = list.pop( );
+      console.log("OPENING", spec);
+      var serial = new Serial.SerialPort(spec.comName, {bufferSize: 64});
+      serial.open(open.bind(serial));
+    });
+  }
+  // var serial = new Serial.SerialPort('/dev/ttyUSB0', {bufferSize: 64});
+  scan(function ( ) {
+  // var serial = new Serial.SerialPort('/dev/ttyUSB0', {bufferSize: 64});
+  // serial.open(function ( ) {
+    var serial = this;
     console.log('stick', serial);
     var driver = uart(serial);
     var pump = session(driver);
@@ -221,7 +232,10 @@ if (!module.parent) {
         .status(console.log.bind(console, "STATUS", 1))
         .model(console.log.bind("MODEL NUMBER 1"))
         .status(console.log.bind(console, "STATUS", 2))
-        .model(console.log.bind("MODEL NUMBER 2"))
+        .model(console.log.bind("MODEL NUMBER", 2))
+        .status(console.log.bind(console, "STATUS", 3))
+        .model(console.log.bind("MODEL NUMBER", 3))
+        .status(console.log.bind(console, "STATUS", 4))
         // .model(console.log.bind("MODEL NUMBER"))
         // .status(console.log.bind(console, "STATUS"))
         .end( )
