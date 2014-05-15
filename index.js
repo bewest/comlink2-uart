@@ -9,22 +9,61 @@ var uart = require('./lib/stick/');
 function session (stick) {
   var my = {stick: stick};
 
-  stick.tap(function ( ) {
+  /*
+  stick.tap
+  (
+  );
+  */
+  function empty_tap ( ) {
     console.log('tapped');
-  });
+  }
 
+  // stick.tap(console.log.bind(console, "REQUIRED TAP, reason ???"));
   function api (saw) {
+    stick.tap(console.log.bind(console, "REQUIRED TAP, reason init"));
+    /*
+    stick.tap(function ( ) {
+      console.log('initial tap required for unknown reason');
+    });
+    */
     this.open = function begin ( ) {
-      var self = this;
-      stick.open(function ( ) {
-        saw.nest(function ( ) {
-          // stick.poll_signal( );
-          self.status(function (err, results) {
-            saw.next( );
+      stick.tap(console.log.bind(console, "REQUIRED TAP, reason OPEN"))
+        .open( )
+        .tap(function ( ) {
+          saw.nest(false, function ( ) {
+            this.status(function (err, results) {
+              console.log("FINISH SESSION INIT");
+              saw.next( );
+            });
           });
-          saw.next( );
-        })
+        });
+      ;
+      return;
+      saw.nest(false, function ( ) {
+      console.log("OPENING SESSION", my, this);
+      var self = this;
+        stick.open(function ( ) {
+            // stick.poll_signal( );
+            console.log('XXX', 'DEBUG', 'self', self, 'this', this);
+            /*
+            */
+            this.stats(function (err, results) {
+              console.log("FINISH SESSION INIT", results);
+              my.stats = results;
+              saw.next( );
+            });
+            return;
+            var next = saw.next;
+              self.status(function (err, results) {
+                console.log("FINISH SESSION INIT");
+                saw.next( );
+                // next( );
+              });
+            // saw.next( );
+        });
       });
+      // stick.tap(function ( ) { });
+      return this;
     }
 
     function end ( ) {
@@ -34,10 +73,18 @@ function session (stick) {
     this.end = end;
 
     function status (cb) {
-      stick.stats(function (err, results) {
-        my.stats = results;
-        if (cb) cb(err, my.stats);
-        saw.next( );
+      console.log("GET STATUS");
+      // stick.tap(console.log.bind(console, "REQUIRED TAP STATUS"));
+      saw.nest(false, function ( ) {
+        var next = saw.next;
+        stick.tap(console.log.bind(console, "REQUIRED TAP STATUS"))
+             .stats(function (err, results) {
+          my.stats = results;
+          if (cb) cb(err, my.stats);
+        }).tap(function ( ) {
+          console.log("FINISHING STATS");
+          next( );
+        });
       });
 
     }
@@ -45,9 +92,13 @@ function session (stick) {
 
     function execute (command, cb) {
       console.log("BEGIN", "EXECUTE", command);
-      var next = saw.next;
-        stick
-          .transmit(command)
+      stick.tap(console.log.bind(console, "REQUIRED TAP EXECUTE"));
+      saw.nest(false, function ( ) {
+        var next = saw.next;
+        // stick.tap(console.log.bind(console, "REQUIRED TAP EXECUTE"));
+
+        stick.tap(console.log.bind(console, "REQUIRED TAP EXECUTE"))
+             .transmit(command)
           .download(command)
           .tap(function ( ) {
             cb.call(this, command);
@@ -55,17 +106,20 @@ function session (stick) {
             next( );
           })
           ;
-      // saw.nest(function ( ) { });
+      });
     }
     this.exec = execute;
 
     function model (cb) {
       var self = this;
+      saw.nest(false, function ( ) {
+        var next = saw.next;
         this.exec(ReadPumpModel(my.serial), function (err, response) {
           console.log("FETCHED PUMP MODEL", arguments);
-          cb.apply(this, arguments);
-          saw.next( );
-        })
+          if (cb && cb.call) cb.apply(this, arguments);
+          next( );
+        });
+      });
     }
     this.model = model;
 
@@ -164,8 +218,9 @@ if (!module.parent) {
     var pump = session(driver);
     pump.open( )
         .serial('208850')
-        .status(console.log.bind(console, "STATUS"))
+        .status(console.log.bind(console, "STATUS", 1))
         .model(console.log.bind("MODEL NUMBER 1"))
+        .status(console.log.bind(console, "STATUS", 2))
         .model(console.log.bind("MODEL NUMBER 2"))
         // .model(console.log.bind("MODEL NUMBER"))
         // .status(console.log.bind(console, "STATUS"))
