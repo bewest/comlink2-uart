@@ -38,10 +38,10 @@ Until it's on `npm`.
         .serial('208850') // set the serial number
         .status(console.log.bind(console, "STATUS", 1))
         // fetch model number
-        .ReadPumpModel(console.log.bind("MODEL NUMBER", 1))
-        .status(console.log.bind(console, "STATUS", 4))
+        .ReadPumpModel(console.log.bind(console, "MODEL NUMBER", 1))
+        .status(console.log.bind(console, "STATUS", 2))
         // fetch model number
-        .ReadPumpModel(console.log.bind("MODEL NUMBER", 2))
+        .ReadPumpModel(console.log.bind(console, "MODEL NUMBER", 2))
         .end( )
     ;
   });
