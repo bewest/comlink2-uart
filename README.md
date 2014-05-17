@@ -160,21 +160,21 @@ Most users won't want to use this.
          .stats( )
          .status( )
          .tap(function ( ) {
-           var max = 5;
            var i = 0;
-           // poll status 5 times
+           // poll status, eg 5 times
            this.loop(function (next) {
-             i++;
-             if (i < max) {
+             if (++i >= 5) { next( ); }
+             else {
                this.status(function (err, stats) {
                   // if the radio size is bigger than the header, try
                   // downloading it
-                  if (stats.size >= 14) {
-                    this.read_packet(stats.size)
-                        .tap(function (err, data) {
-                          console.log("FOUND", data);
-                        })
+                 if (stats.size >= 14) {
+                   this.read_packet(stats.size)
+                       .tap(function (err, data) {
+                         console.log("FOUND", data);
+                       })
                     ;
+                    next( );
                   }
 
                });
