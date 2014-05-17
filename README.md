@@ -151,6 +151,8 @@ command itself as the second.
 #### `uart`
 
 Most users won't want to use this.
+This facilitates easily exchanging opcodes/messages with the modem
+itself.
 
 ```javascript
     // This is an example of implementing a custom "clear radio
@@ -162,8 +164,8 @@ Most users won't want to use this.
          .tap(function ( ) {
            var i = 0;
            // poll status, eg 5 times
-           this.loop(function (next) {
-             if (++i >= 5) { next( ); }
+           this.loop(function (stop) {
+             if (++i >= 5) { stop( ); }
              else {
                this.status(function (err, stats) {
                   // if the radio size is bigger than the header, try
@@ -174,7 +176,7 @@ Most users won't want to use this.
                          console.log("FOUND", data);
                        })
                     ;
-                    next( );
+                    stop( );
                   }
 
                });
