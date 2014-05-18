@@ -8,6 +8,8 @@ function create (transport, fn) {
   if (fn && fn.call) my.session.tap(fn.bind(my.session, my));
   return my;
 }
+create.uart = uart;
+create.session = session;
 
 module.exports = create;
 
