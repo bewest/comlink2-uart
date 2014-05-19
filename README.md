@@ -113,6 +113,7 @@ Most users will want to write something like this:
     var pump = link.session;
     pump.open( )
         .serial('123456') // serial number of pump
+        .power_on_ten_minutes(console.log.bind(console, "SET POWER ON"))
         .ReadPumpModel( ) // fetch remote pump
         .end( )           // clean up session
         ;
