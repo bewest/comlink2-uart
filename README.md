@@ -138,6 +138,9 @@ Most users will want to write something like this:
         ;
 ```
 
+In order to exchange well defined messages as designed/supported by
+the manufacturer.
+
 ##### `open (cb)`
 
 Initializes the usb stick, confirms stick product information,
@@ -195,7 +198,7 @@ itself.
            var i = 0;
            // poll status, eg 5 times
            this.loop(function (stop) {
-             if (++i >= 5) { stop( ); }
+             if (++i >= 5) { console.log("NO DATA FOUND"); stop( ); }
              else {
                this.status(function (err, stats) {
                   // if the radio size is bigger than the header, try
