@@ -29,7 +29,7 @@ if (!module.parent) {
     pump.open( )
         .serial('208850')
         .status(console.log.bind(console, "STATUS", 1))
-        // .power_on_ten_minutes(console.log.bind(console, "SET POWER ON"))
+        .power_on_ten_minutes(console.log.bind(console, "SET POWER ON"))
         .ReadPumpModel(console.log.bind(console, "MODEL NUMBER", 1))
         .status(console.log.bind(console, "STATUS", 4))
         .ReadPumpModel(console.log.bind(console, "MODEL NUMBER", 2))

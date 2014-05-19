@@ -148,6 +148,16 @@ Callback is called with `this` applied to session's scope, with the
 `model` number (as ascii string) as the first parameter, and the
 command itself as the second.
 
+##### `power_on_ten_minutes ( )` `->` `cb(result, command)`
+Send "power control on" command.  Should initialize RF session for ten
+minutes or so.
+
+```javascript
+        pump.open( )
+          .power_on_ten_minutes(console.log.bind(console, "SET POWER ON"))
+          ;
+```
+
 #### `uart`
 
 Most users won't want to use this.
