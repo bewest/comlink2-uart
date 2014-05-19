@@ -18,6 +18,25 @@ Until it's on `npm`.
 
 ### Usage
 
+Should work with `net` and `serialport` transports.
+The transport given to `uart` must be a bidirectional stream.
+Here's an example using `serialport`.
+
+If youclone this repo, you can run:
+_replace **208850** with **your pump's serial number**_.
+```bash
+$ REMOTE_SERIAL=208850 node index.js
+```
+
+Or for prettier output:
+```bash
+$ REMOTE_SERIAL=208850 node index.js 2>&1 | ./node_modules/.bin/bunyan | less -R +F
+```
+Should show you a debug log of trying to power on for ten minutes,
+then reading the serial number.
+
+Or you can write your own scripts like this:
+
 ```javascript
   var uart = require('comlink2-uart');
   // scan all serial ports
@@ -239,15 +258,9 @@ Stop sending messages, clean up event listeners.
 
 ### Bugs
 
+Probably many,
+[file an issue](https://github.com/bewest/comlink2-uart/issues).
 
-Buggy code, WIP, error handling, CRC checking etc.
-Should work with `net` and `serialport` transports.
-
-#### will not work unless `PowerControlOn` has already been sent
-
-Eg, by `mm-send-comm.py --init --serial 208850 sleep 0`.
-Once pump is expecting to talk to you, you should be able to run the
-script to talk to it.
 
 ## LICENSE
 
