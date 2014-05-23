@@ -104,21 +104,27 @@ command in a `session`.  This second api allows users to ignore the
 complexity of how the modem operates, in order to meaningfully
 exchange messages with remote equipment.
 
-#### `transport` must be some bidirectional stream
+#### `transport` must be some Duplex stream
+
 
 It must have a `write`, and `pipe` method, support `data`, `end`,
-`close`, and `error` events as an `EventEmitter`.
-
+`close`, and `error` events as an `EventEmitter`, etc.  It must be a
+[duplex stream](https://github.com/substack/stream-handbook#duplex)
+supporting `pipe`.
 
 ```javascript
   var uart = require('comlink2-uart');
-    // var transport = new SerialPort
-    // var transport = net.createConnection( )
-    // var transport = myStream( );
-    var link = create(transport)
-    // session
-    var pump = link.session;
-    var stick = link.uart;
+  // * choose one of these
+  // USB support!
+  // var transport = require('comlink2-uart/usb')( )
+  // var transport = new SerialPort
+  // var transport = net.createConnection( ) // untested
+  // var transport = myStream( ); // any duplex stream
+
+  var link = create(transport);
+  // session
+  var pump = link.session;
+  var stick = link.uart;
 ```
 
 #### `session`
@@ -258,6 +264,70 @@ called.
 ##### `close`
 Stop sending messages, clean up event listeners.
 
+### `comlink2-uart/usb`
+Create a `duplex` stream representing the usb transport.
+**Must have [`usb`](https://github.com/nonolith/node-usb) installed**
+
+```javascript
+var createUSB = require('comlink2-uart/lib/usb');
+// sniff for device, create duplex stream
+var transport = createUSB( );
+```
+```javascript
+var usb = require('comlink2-uart/lib/usb');
+```
+The module is a function which scans and creates the duplex stream.
+Specifically, it returns an instance of `UsbSimpleDuplex` using the
+device found after scanning the bus.
+
+Our usb helpers:
+#### `usb.scan`
+Scan usb bus for Carelink device.  Returns usb device.
+
+#### `usb.UsbSimpleDuplex`
+Base class for our `duplex` stream.
+
+## Examples
+### Running the examples
+
+```bash
+# eg: node examples/usb_pump.js 208850
+$ node examples/usb_stick.js
+$ node examples/usb_pump.js SERIAL
+```
+
+Here's an example using the usb transport with the pump api:
+```javascript
+var create = require('comlink2-uart');
+var usb = require('comlink2-uart/lib/usb');
+
+if (!module.parent) {
+  var serial = process.argv.slice(2,3).pop( ) || process.env['SERIAL'];
+  if (!serial) {
+    console.log('usage: usb_pump.js SERIAL'); 
+    process.exit(1);
+  }
+  console.log('howdy');
+  var stream = usb( );
+  stream.on('error', function ( ) {
+    console.log("BAD ERROR", arguments);
+    stream.close( );
+    stream.end( );
+  });
+
+  stream.open( );
+  var session = create(stream)
+
+  var pump = session.session;
+  pump.open(console.log.bind(console, "OPENED"))
+      .serial(serial)
+      .power_on_ten_minutes(console.log.bind(console, 'POWER ON'))
+      .ReadPumpModel(console.log.bind(console, 'POWER ON for MODEL'))
+      .end( )
+  ;
+
+}
+```
 
 ### Bugs
 
