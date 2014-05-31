@@ -16,7 +16,8 @@
     "event-stream": "~3.1.5",
     "packet": "~0.0.6",
     "put": "~0.0.6",
-    "bunyan": "~0.22.3"
+    "bunyan": "~0.22.3",
+    "readable-stream": "~1.0.27-1"
   },
   "devDependencies": {
     "usb": "~0.3.11",
