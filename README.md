@@ -318,10 +318,13 @@ Base class for our `duplex` stream.
 ### Running the examples
 
 ```bash
+$ node examples/usb_stick.js # just check usb diagnostics
 # eg: node examples/usb_pump.js 208850
-$ node examples/usb_stick.js
-$ node examples/usb_pump.js SERIAL
+$ node examples/usb_pump.js 208850
+# or use environment variable SERIAL
+$ SERIAL=208850 node examples/usb_pump.js
 ```
+Make sure SERIAL is set to your pump's serial number.
 
 Here's an example using the usb transport with the pump api:
 ```javascript
