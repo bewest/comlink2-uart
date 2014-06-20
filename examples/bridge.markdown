@@ -36,8 +36,9 @@ If this works you can use the other tools as well.
 For example:
 ```bash
 # turn on RF and say hello
+# --init enables RF for ten minutes
 mm-send-comm.py --port /dev/pts/30 --init sleep 0
-mm-send-comm.py --port /dev/pts/30 --init sleep 0
+mm-send-comm.py --port /dev/pts/30 sleep 0
 
 # grab and dump json of first 4 pages
 ./bin/mm-pages.py --port /dev/pts/30 history 0-3
