@@ -10,10 +10,37 @@ remote insulin pumps.
 
 ## Example
 ### Install
+To use in another project:
 ```bash
 $ npm install git+ssh://git@github.com:bewest/comlink2-uart.git
 ```
 Until it's on `npm`.
+
+### Windows
+See windows notes:
+* https://github.com/nonolith/node-usb#installation
+
+### Mac
+Make sure `brew` and `pkg-config` is installed:
+* https://github.com/nonolith/node-usb#installation
+
+```bash
+# install brew
+# First install 'brew' (package manager) by typing into your terminal:
+ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+# Next type
+brew install libusb pkg-config
+```
+
+### Linux
+Just works.
+
+### Install from cloned repo
+Or clone the repo:
+```bash
+$ git clone git@github.com:bewest/comlink2-uart.git
+$ npm install
+```
 
 
 ### Usage
@@ -291,10 +318,13 @@ Base class for our `duplex` stream.
 ### Running the examples
 
 ```bash
+$ node examples/usb_stick.js # just check usb diagnostics
 # eg: node examples/usb_pump.js 208850
-$ node examples/usb_stick.js
-$ node examples/usb_pump.js SERIAL
+$ node examples/usb_pump.js 208850
+# or use environment variable SERIAL
+$ SERIAL=208850 node examples/usb_pump.js
 ```
+Make sure SERIAL is set to your pump's serial number.
 
 Here's an example using the usb transport with the pump api:
 ```javascript
