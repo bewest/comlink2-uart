@@ -23,6 +23,7 @@ if (!module.parent) {
   pump.open(console.log.bind(console, "OPENED"))
       .serial(serial)
       // .power_on_ten_minutes(console.log.bind(console, 'POWER ON'))
+      .prelude({minutes: 3})
       .ReadPumpModel(function model (res, msg) {
         session.model = res;
         console.log('MODEL', res);
