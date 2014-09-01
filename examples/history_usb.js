@@ -34,7 +34,7 @@ if (!module.parent) {
         if (session.model) {
           console.log('MODEL SUCCESS', session.model);
           console.log('asking for history');
-          this.ReadHistoryData({page: 2}, function (raw, res) {
+          this.ReadHistoryData({page: 0}, function (raw, res) {
             console.log("HISTORY!! err", raw);
             console.log("RES!! res", res);
             res.save( );
