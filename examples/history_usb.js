@@ -39,6 +39,11 @@ if (!module.parent) {
             console.log("RES!! res", res);
             res.save( );
           });
+          this.ReadGlucoseHistory({page: 120}, function (raw, res) {
+            console.log("CGM HISTORY!! err", raw);
+            console.log("RES!! res", res);
+            res.save( );
+          });
 
         } else {
           console.log("FAIL FAIL");
