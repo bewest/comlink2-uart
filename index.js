@@ -27,7 +27,7 @@ if (!module.parent) {
     var pump = create(this).session;
     console.log("PUMP", pump);
     pump.open( )
-        .serial(process.env['REMOTE_SERIAL'] || '208850')
+        .serial(process.env['REMOTE_SERIAL'] || '740926')
         .status(console.log.bind(console, "STATUS", 1))
         .power_on_ten_minutes(console.log.bind(console, "SET POWER ON"))
         .ReadPumpModel(console.log.bind(console, "MODEL NUMBER", 1))
