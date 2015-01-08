@@ -13,7 +13,7 @@ create.session = session;
 
 module.exports = create;
 
-if (!module.parent) {
+if (process.env && process.env.SHELL && !module.parent) {
   var Serial = require('serialport');
   function scan (open) {
     Serial.list(function (err, list) {
