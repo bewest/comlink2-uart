@@ -19,7 +19,7 @@ exports.LowByte = function (arg) {
 
 function CRC16CCITT (block, opts) {
     var tmp;
-    var result = ('sync' in opts) ? opts.sync : 65535;
+    var result = (opts && 'sync' in opts) ? opts.sync : 65535;
     for (var i = 0; i < block.length; i++) {
       tmp = block[ i ] ^ result >> 8 
       result = ( CRC16CCITT.lookup[ tmp ] ^ result << 8 ) & 0xFFFF
